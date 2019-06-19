@@ -8,6 +8,10 @@ const happyThreadPool = HappyPack.ThreadPool({
 });
 let dllRunner = require('./webpack.dll.js');
 
+function resolve (dir) {
+    return path.join(__dirname, '..', dir)
+}
+
 let config = {
     entry: {
         index: './src/index.js'
@@ -57,7 +61,7 @@ let config = {
     resolve: {
         extensions: ['.js', '.json', '.css', '.less'],
         alias: {
-            common: path.resolve(__dirname, './src/common')
+            '@': resolve('src')
         }
     },
     plugins: [
