@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {HashRouter, Switch, Route,Redirect} from "react-router-dom";
 
-import home from '@/pages/home';
+import {Home} from '../pages/home';
 
 
 
@@ -10,7 +10,7 @@ export class Routers extends Component{
         return (
             <HashRouter>
                 <Switch>
-                    <Route path = '/' exact component = {home}></Route>
+                    <Route path = '/' exact component = {Home}></Route>
                     <Redirect to = '/'/>
                 </Switch>
             </HashRouter>

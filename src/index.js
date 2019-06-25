@@ -5,9 +5,9 @@ import {Provider} from 'react-redux';
 import {AppContainer} from "react-hot-loader";
 
 import {Routers} from "./router";
+import {store} from "./store";
 
 import './index.css';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 
