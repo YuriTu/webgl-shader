@@ -10,7 +10,8 @@ let defaultState = {
 export const genHomeState = (state = defaultState, action = {}) => {
     switch (action.type) {
         case home.PLUSCOUNT:
-            return {...state, ...{[action.type]:action.value}};
+            console.log(action.value,'reducer')
+            return {...state, ...{count:action.value}};
         default:
             return state;
     }

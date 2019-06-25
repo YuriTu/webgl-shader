@@ -1,1 +1,1 @@
-export const PLUSCOUNT = 'PLUSCOUNT';
+export const PLUSCOUNT = 'count';
