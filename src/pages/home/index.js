@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 import { connect} from "react-redux";
 
 import {plusCount} from "../../store/home/action";
-
+// 异步 同步的实现
+// 自造 中间件的实现
 class Home extends Component{
     constructor(props){
         super(props)
