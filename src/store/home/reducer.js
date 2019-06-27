@@ -3,7 +3,8 @@ import * as home from './action-type';
 
 let defaultState = {
     count:1,
-    imgPath:''
+    sid:'',
+    result:''
 };
 
 
@@ -12,6 +13,10 @@ export const genHomeState = (state = defaultState, action = {}) => {
         case home.PLUSCOUNT:
             console.log(action.value,'reducer')
             return {...state, ...{count:action.value}};
+        case home.SAVEDATA:
+            return {...state, ...{[action.dataType]:action.value}}
+        case home.POSTREQUEST:
+            return
         default:
             return state;
     }
