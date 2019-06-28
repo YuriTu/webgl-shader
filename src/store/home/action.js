@@ -1,5 +1,6 @@
 import * as home from './action-type';
 import {url} from "./config";
+import {get} from "../../api/api";
 
 export const plusCount = (value, datatype) => {
 
@@ -24,15 +25,13 @@ export const genRequest = (sid) => {
         try {
             let param = {
                 r: 'api/createSurveyBySid',
-                ak: url.token,
                 sid: sid
             };
-
-            let rs = await get(param);
-
+            let rs = await get(url.domain,param);
+            let data = rs.data;
             dispatch({
-                type:'',
-                value:''
+                type:home.POSTREQUEST,
+                value:data.msg
             })
         } catch (e) {
             console.error(e)

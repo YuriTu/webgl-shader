@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import { connect} from "react-redux";
 
 import {plusCount, saveData ,genRequest} from "../../store/home/action";
-// 异步 同步的实现
 // 自造 中间件的实现
 class Home extends Component{
     constructor(props){
@@ -12,20 +11,16 @@ class Home extends Component{
         }
 
         this.handleClick = () => {
-            console.log(this.props.homeData.count,'handle')
             this.props.plusCount(this.props.homeData.count);
         }
 
         this.handleInput = (e) => {
             this.props.saveData('sid',e.target.value)
-
         }
 
         this.createSurvey = () => {
             let sid = this.props.homeData.sid;
-
             this.props.genRequest(sid);
-
         }
     }
 

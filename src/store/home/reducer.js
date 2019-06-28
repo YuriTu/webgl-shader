@@ -16,7 +16,7 @@ export const genHomeState = (state = defaultState, action = {}) => {
         case home.SAVEDATA:
             return {...state, ...{[action.dataType]:action.value}}
         case home.POSTREQUEST:
-            return
+            return {...state, ...{result: action.value}}
         default:
             return state;
     }
