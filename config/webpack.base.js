@@ -14,7 +14,8 @@ function resolve (dir) {
 
 let config = {
     entry: {
-        index: './src/index.js'
+        index: './src/index.js',
+        // shader: './src/pages/shader/index.js'
     },
     output: {
         filename: 'js/[name].js',
