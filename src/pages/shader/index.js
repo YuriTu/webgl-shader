@@ -39,14 +39,32 @@ void main() {
 let fragmentshader = `
 
 precision mediump float;
+
+
 uniform vec2 u_textureSize;
 uniform sampler2D u_image;
+
+uniform float u_kernel[9];
+uniform float u_kernelWeight;
 
 varying vec2 v_texCoord;
 
 void main(){
     vec2 onePixel = vec2(1.0,1.0) / u_textureSize;
-    gl_FragColor = ( texture2D(u_image, v_texCoord) + texture2D(u_image, v_texCoord + vec2(onePixel.x, 0.0)) + texture2D(u_image, v_texCoord + vec2(-onePixel.x, 0.0))  ) / 3.0;
+    
+    vec4 colorSum = 
+        texture2D(u_image, v_texCoord + vec2(-1,-1) * onePixel )  * u_kernel[0] +  
+        texture2D(u_image, v_texCoord + vec2( 0,-1) * onePixel )  * u_kernel[1] +  
+        texture2D(u_image, v_texCoord + vec2( 1,-1) * onePixel )  * u_kernel[2] +  
+        texture2D(u_image, v_texCoord + vec2(-1, 0) * onePixel )  * u_kernel[3] +  
+        texture2D(u_image, v_texCoord + vec2( 0, 0) * onePixel )  * u_kernel[4] +  
+        texture2D(u_image, v_texCoord + vec2( 1, 0) * onePixel )  * u_kernel[5] +  
+        texture2D(u_image, v_texCoord + vec2(-1, 1) * onePixel )  * u_kernel[6] +  
+        texture2D(u_image, v_texCoord + vec2( 0, 1) * onePixel )  * u_kernel[7] +  
+        texture2D(u_image, v_texCoord + vec2( 1, 1) * onePixel )  * u_kernel[8];  
+        
+    
+    gl_FragColor = vec4( (colorSum / u_kernelWeight).rgb, 1.0);
 }
 
 `;
@@ -168,6 +186,29 @@ export class Shader extends Component {
 
         let textureSizeLocation = gl.getUniformLocation(gl.program, "u_textureSize");
         gl.uniform2f(textureSizeLocation, img.width, img.height)
+
+        // set kernel
+        this.genKernel();
+
+    }
+
+    genKernel(){
+        const getKernelWeight = (kernel) => {
+            let w = kernel.reduce((p,c) => p + c);
+            w = w <= 0 ? 1 : w;
+            return w;
+        }
+        let kernelLocation = gl.getUniformLocation(gl.program, 'u_kernel[0]');
+        let kernelWidthLocation = gl.getUniformLocation(gl.program, 'u_kernelWeight');
+
+        let edgeDetecKernel = [
+            -1, -1, -1,
+            -1,  8, -1,
+            -1, -1, -1
+        ]
+
+        gl.uniform1fv(kernelLocation,edgeDetecKernel);
+        gl.uniform1f(kernelWidthLocation,getKernelWeight(edgeDetecKernel));
 
     }
 
