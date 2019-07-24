@@ -202,9 +202,9 @@ export class Shader extends Component {
         let kernelWidthLocation = gl.getUniformLocation(gl.program, 'u_kernelWeight');
 
         let edgeDetecKernel = [
-            -1, -1, -1,
-            -1,  8, -1,
-            -1, -1, -1
+            -2, -1, 0,
+            -1,  1, 1,
+            0, 1, 2
         ]
 
         gl.uniform1fv(kernelLocation,edgeDetecKernel);
