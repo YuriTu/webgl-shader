@@ -39,13 +39,14 @@ void main() {
 let fragmentshader = `
 
 precision mediump float;
-
+uniform vec2 u_textureSize;
 uniform sampler2D u_image;
 
 varying vec2 v_texCoord;
 
 void main(){
- gl_FragColor = texture2D(u_image, v_texCoord);
+    vec2 onePixel = vec2(1.0,1.0) / u_textureSize;
+    gl_FragColor = ( texture2D(u_image, v_texCoord) + texture2D(u_image, v_texCoord + vec2(onePixel.x, 0.0)) + texture2D(u_image, v_texCoord + vec2(-onePixel.x, 0.0))  ) / 3.0;
 }
 
 `;
@@ -164,6 +165,9 @@ export class Shader extends Component {
 
         let resolutionLocation = gl.getUniformLocation(gl.program, 'u_resolution');
         gl.uniform2f(resolutionLocation,gl.canvas.width,gl.canvas.height);
+
+        let textureSizeLocation = gl.getUniformLocation(gl.program, "u_textureSize");
+        gl.uniform2f(textureSizeLocation, img.width, img.height)
 
     }
 
