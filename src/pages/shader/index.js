@@ -116,6 +116,37 @@ export class Shader extends Component {
                 x2, y2
             ]
         }
+
+        this.kernels = {
+            normal: [
+                0, 0, 0,
+                0, 1, 0,
+                0, 0, 0
+            ],
+            gaussianBlur: [
+                0.045, 0.122, 0.045,
+                0.122, 0.332, 0.122,
+                0.045, 0.122, 0.045
+            ],
+            unsharpen: [
+                -1, -1, -1,
+                -1,  9, -1,
+                -1, -1, -1
+            ],
+            emboss: [
+                -2, -1,  0,
+                -1,  1,  1,
+                0,  1,  2
+            ]
+        };
+
+        this.effectsToApply = [
+            "gaussianBlur",
+            "emboss",
+            "gaussianBlur",
+            "unsharpen"
+        ];
+
     }
     //   应该有一个中间件来处理这个事情，而不是没完没了的promise和clback
     async componentDidMount(){
@@ -169,23 +200,11 @@ export class Shader extends Component {
 
 
         // // texture
-        let texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        this.textureProcess(img);
 
         // uniform var
 
-        let resolutionLocation = gl.getUniformLocation(gl.program, 'u_resolution');
-        gl.uniform2f(resolutionLocation,gl.canvas.width,gl.canvas.height);
 
-        let textureSizeLocation = gl.getUniformLocation(gl.program, "u_textureSize");
-        gl.uniform2f(textureSizeLocation, img.width, img.height)
 
         // set kernel
         this.genKernel();
@@ -198,7 +217,7 @@ export class Shader extends Component {
             w = w <= 0 ? 1 : w;
             return w;
         }
-        let kernelLocation = gl.getUniformLocation(gl.program, 'u_kernel[0]');
+        // let kernelLocation = gl.getUniformLocation(gl.program, 'u_kernel[0]');
         let kernelWidthLocation = gl.getUniformLocation(gl.program, 'u_kernelWeight');
 
         let edgeDetecKernel = [
@@ -207,9 +226,100 @@ export class Shader extends Component {
             0, 1, 2
         ]
 
-        gl.uniform1fv(kernelLocation,edgeDetecKernel);
+        // gl.uniform1fv(kernelLocation,edgeDetecKernel);
         gl.uniform1f(kernelWidthLocation,getKernelWeight(edgeDetecKernel));
 
+    }
+
+
+
+    createAndSetupTexture(){
+        let texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        // 设置材质，这样我们可以对任意大小的图像进行像素操作
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        return texture;
+
+    }
+
+    textureProcess(img){
+
+        let originalImageTexture = this.createAndSetupTexture();
+        // 设置对应的w h
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+
+        let textureSizeLocation = gl.getUniformLocation(gl.program, "u_textureSize");
+        gl.uniform2f(textureSizeLocation, img.width, img.height)
+
+        gl.bindTexture(gl.TEXTURE_2D, originalImageTexture);
+        // 创建两个buffer 准备进行渲染
+        this.createTextureBuffer(img);
+        // 准备y轴
+        let flipYLocation = gl.getUniformLocation(gl.program, 'u_flipY');
+
+        gl.uniform1f(flipYLocation, 1);
+
+        // 循环渲染
+        const setFrameBuffer = (frameBufferObject, w, h) => {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, frameBufferObject);
+
+
+            let resolutionLocation = gl.getUniformLocation(gl.program, 'u_resolution');
+            gl.uniform2f(resolutionLocation,w,h);
+
+            gl.viewport(0, 0, w, h);
+
+        }
+        const drawWithKernel = name => {
+            let kernelLocation = gl.getUniformLocation(gl.program, 'u_kernel[0]');
+            gl.uniform1fv(kernelLocation, this.kernels[name]);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+
+
+
+        for (let i = 0,count = 0; i< this.effectsToApply.length; i++){
+            setFrameBuffer(this.framebuffers[i % 2], img.width, img.height);
+            drawWithKernel(this.effectsToApply[i]);
+
+            gl.bindTexture(gl.TEXTURE_2D, this.textures[i % 2]);
+
+        }
+
+        gl.uniform1f(flipYLocation, -1);  // need to y flip for canvas
+        setFrameBuffer(null, gl.canvas.width, gl.canvas.height);
+        drawWithKernel("normal");
+
+
+    }
+
+    createTextureBuffer(img){
+        this.textures = [];
+        this.framebuffers = [];
+        // 创建两个纹理绑定到帧缓冲
+        for (let i = 0; i < 2;i++){
+            let texture = this.createAndSetupTexture();
+            this.textures.push(texture);
+
+            gl.texImage2D(
+                gl.TEXTURE_2D, 0,gl.RGBA, img.width, img.height, 0,
+                gl.RGBA, gl.UNSIGNED_BYTE, null
+            );
+
+            let fob = gl.createFramebuffer();
+            this.framebuffers.push(fob);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fob);
+
+            gl.framebufferTexture2D(
+                gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0
+            );
+        }
     }
 
 

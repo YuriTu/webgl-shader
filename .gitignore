@@ -26,3 +26,4 @@ yarn-error.log*
 
 
 src/store/home/config.js
+src/pages/shader/test.js
