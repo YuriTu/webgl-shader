@@ -1,3 +1,10 @@
+var originCreateElement = document.createElement;
+document.createElement = function() {
+    if (arguments[0] === 'span'){
+        console.log('create span');
+    }
+    return originCreateElement.apply(document, arguments);
+}
 import React, {Component} from "../../../node_modules/react/cjs/react.development";
 import {initShaders} from "../../util/lib/cuon-utils";
 

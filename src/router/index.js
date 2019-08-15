@@ -13,7 +13,7 @@ export class Routers extends Component{
             <HashRouter>
                 <Switch>
                     <Route path = '/' exact component = {Home}></Route>
-                    {/*<Route path = '/react' component = {ReactHelloWorld}></Route>*/}
+                    <Route path = '/react' component = {ReactHelloWorld}></Route>
                     <Route path = '/shader' component = {Shader}></Route>
                     <Redirect to = '/'/>
                 </Switch>

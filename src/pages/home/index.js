@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import { connect} from "react-redux";
 
 import {plusCount, saveData ,genRequest} from "../../store/home/action";
-// ×ÔÔì ÖÐ¼ä¼þµÄÊµÏÖ
+// è‡ªé€  ä¸­é—´ä»¶çš„å®žçŽ°
 class Home extends Component{
     constructor(props){
         super(props)
